@@ -75,15 +75,12 @@ export async function logIn(req, res) {
 
 // Creates user with given details
 export async function register(req, res) {
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
 
   // Error checking
   const errors = [];
 
   // Check if value not inputted
-  if (!name) {
-    errors.push({ name: "required" });
-  }
   if (!email) {
     errors.push({ email: "required" });
   }
@@ -102,7 +99,6 @@ export async function register(req, res) {
   }
 
   const user = new User({
-    name,
     email,
     password,
   });
