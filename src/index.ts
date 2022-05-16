@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import User from "./routes/user";
 
 const server = express();
 
@@ -18,7 +19,7 @@ server.get("/", (req, res) => {
   res.status(200).send("Server Root");
 });
 
-// server.use("/api/...", ...);
+server.use("/api/user", User);
 
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`Server is running on port ${port}`));
