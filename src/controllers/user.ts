@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { User } from "../models/user";
 
 // Gets name of currently logged-in user
-export async function getName(req, res) {
+export async function getEmail(req, res) {
   const id = req.params.user;
 
   // Error checking
@@ -20,8 +20,8 @@ export async function getName(req, res) {
     return res.status(422).json({ errors });
   }
 
-  User.findOne({ _id: id }, "name -_id")
-    .then((data) => res.json(data?.name));
+  User.findOne({ _id: id }, "email -_id")
+    .then((data) => res.json(data?.email));
 }
 
 // Finds user with given details, and logs in if correct. Creates JWT for session (Which should be used in Authorization header as "Bearer ...")
