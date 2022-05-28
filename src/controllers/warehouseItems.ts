@@ -128,3 +128,42 @@ export async function addItem(req, res) {
       });
   });
 }
+
+export async function addItemToRegister(req, res){
+  const{ itemName, itemNotes } = req.body;
+
+    // Error checking
+    const errors = [];
+
+    // Check if value not inputted
+    if (!itemName) {
+      errors.push({ itemName: "required" });
+    }
+    if (!itemNotes) {
+      errors.push({ itemNotes: "required" });
+    }
+  
+    // Output any errors
+    if (errors.length > 0) {
+      return res.status(422).json({ errors });
+    }
+
+  const newRegisterItem = new registeredItem({
+    itemName,
+    itemNotes
+  });
+
+  newRegisterItem
+    .save()
+    .then(() => {
+      return res.status(200).json({
+        success: true,
+        message: "success",
+      });
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        errors: err,
+      });
+    });
+}

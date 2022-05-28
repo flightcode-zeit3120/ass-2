@@ -13,6 +13,8 @@ const SWarehouseItem = new Schema<TWarehouseItem>({
 const SRegisteredItem = new Schema<Tregistereditem>({
     itemName: {type: String, required: true},
     itemNotes: {type: String, required: true}
+},{
+    versionKey: false
 });
 
 export const warehouseItems = model<TWarehouseItem>('warehouseitems', SWarehouseItem);
