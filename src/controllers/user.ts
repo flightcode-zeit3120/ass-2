@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { User } from "../models/user";
@@ -119,4 +119,32 @@ export async function register(req, res) {
         errors: err,
       });
     });
+}
+
+export async function deleteUser(req, res){
+  var userID = req.query.userID;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!userID) {
+    errors.push({ itemID: "required" });
+  }
+
+  // Run conversion after verifying it exists
+  try {
+    userID = new ObjectId(req.query.userID);
+  } catch(e){
+    errors.push({ userID: "must be a geniune user ID" })
+    return res.status(422).json({ errors });
+  }
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  User.deleteOne({ _id: userID})
+  .then((data) => res.json(data));
 }
