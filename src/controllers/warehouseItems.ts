@@ -2,13 +2,13 @@ import { warehouseItems, registeredItem } from "../models/warehouseItem";
 
 // Gets name of currently logged-in user
 export async function getItem(req, res) {
-  const givenItemID = req.query.itemID;
+  const itemName = req.query.itemName;
 
   // Error checking
   const errors = [];
 
   // Check if value not inputted
-  if (!givenItemID) {
+  if (!itemName) {
     errors.push({ itemID: "required" });
   }
 
@@ -20,32 +20,40 @@ export async function getItem(req, res) {
   //warehouseItems.findOne({itemID: givenItemID}, "-_id")
   //.then((data) => res.json(data));
 
-  warehouseItems.aggregate([
-    {
-      // Performs a simple match (similar to find)
-      '$match': {
-        'itemID': +givenItemID // Type conversion of givenItemID as String to Int for match
-      }
-    }, {
-      // Performs a traditional LEFT JOIN SQL function on itemType to _id
-      '$lookup': {
-        'from': 'itemregister',
-        'localField': 'itemType',
-        'foreignField': '_id',
-        'as': 'itemDetails'
-      }
-    }, {
-      // Unwinds the returned arrray under itemDetails to just the single object
-      '$unwind': {
-        'path': '$itemDetails'
-      }
-    }, {
-      // Removes the fields from the return output
-      '$unset': [
-        '_id', 'itemType', 'itemDetails._id'
-      ]
+  registeredItem.findOne({ itemName: itemName }).then((data) => {
+    if (!data) {
+      return res.status(404).json({ errors: [{ itemType: "no such itemType in the item register" }] });
     }
-  ]).then((data) => res.json(data[0])); // data[0] is used as this pipeline will only ever return one result as itemID is unique
+
+    const itemType = data._id;
+
+    warehouseItems.aggregate([
+      {
+        // Performs a simple match (similar to find)
+        '$match': {
+          'itemType': itemType
+        }
+      }, {
+        // Performs a traditional LEFT JOIN SQL function on itemType to _id
+        '$lookup': {
+          'from': 'registereditems',
+          'localField': 'itemType',
+          'foreignField': '_id',
+          'as': 'itemDetails'
+        }
+      }, {
+        // Unwinds the returned arrray under itemDetails to just the single object
+        '$unwind': {
+          'path': '$itemDetails'
+        }
+      }, {
+        // Removes the fields from the return output
+        '$unset': [
+          'item', 'itemType', 'itemDetails'
+        ]
+      }
+    ]).then((data) => res.json(data)); // data[0] is used as this pipeline will only ever return one result as itemID is unique
+  });
 }
 
 export async function updateItem(req, res) {
@@ -93,7 +101,7 @@ export async function addItem(req, res) {
   }
 
   // Try find the objectID for the type
-  registeredItem.findOne({}).then((data) => {
+  registeredItem.findOne({ itemName: itemType }).then((data) => {
     if (!data) {
       return res.status(404).json({ errors: [{ itemType: "no such itemType in the item register" }] });
     }
