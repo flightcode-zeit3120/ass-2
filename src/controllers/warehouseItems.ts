@@ -69,7 +69,12 @@ export async function getItemByID(req, res){
   }
 
   // Run conversion after verifying it exists
-  itemID = new ObjectId(req.query.itemID);
+  try {
+    itemID = new ObjectId(req.query.itemID);
+  } catch(e){
+    errors.push({ itemID: "must be a geniune item ID" })
+    return res.status(422).json({ errors });
+  }
 
   // Output any errors
   if (errors.length > 0) {
@@ -120,7 +125,12 @@ export async function updateItem(req, res) {
   }
 
   // Run conversion after verifying it exists
-  givenItemID = new ObjectId(givenItemID);
+  try {
+    givenItemID = new ObjectId(req.query.itemID);
+  } catch(e){
+    errors.push({ itemID: "must be a geniune item ID" })
+    return res.status(422).json({ errors });
+  }
 
   if (!newItemLoc) {
     errors.push({ newItemLoc: "required" });
@@ -149,7 +159,12 @@ export async function updateRegisterItem(req, res){
   }
   
   // Run conversion after verifying it exists
-  givenItemID = new ObjectId(givenItemID);
+  try {
+    givenItemID = new ObjectId(req.query.itemID);
+  } catch(e){
+    errors.push({ itemID: "must be a geniune item ID" })
+    return res.status(422).json({ errors });
+  }
 
   if (!newItemName) {
     errors.push({ newItemName: "required" });
@@ -253,4 +268,60 @@ export async function addItemToRegister(req, res){
         errors: err,
       });
     });
+}
+
+export async function deleteItem(req, res){
+  var itemID = req.query.itemID;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!itemID) {
+    errors.push({ itemID: "required" });
+  }
+
+  // Run conversion after verifying it exists
+  try {
+    itemID = new ObjectId(req.query.itemID);
+  } catch(e){
+    errors.push({ itemID: "must be a geniune item ID" })
+    return res.status(422).json({ errors });
+  }
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  warehouseItems.deleteOne({ _id: itemID})
+  .then((data) => res.json(data));
+}
+
+export async function deleteRegisterItem(req, res){
+  var itemID = req.query.itemID;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!itemID) {
+    errors.push({ itemID: "required" });
+  }
+
+  // Run conversion after verifying it exists
+  try {
+    itemID = new ObjectId(req.query.itemID);
+  } catch(e){
+    errors.push({ itemID: "must be a geniune item ID" })
+    return res.status(422).json({ errors });
+  }
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  registeredItem.deleteOne({ _id: itemID})
+  .then((data) => res.json(data));
 }
