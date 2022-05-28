@@ -1,4 +1,5 @@
 import { warehouseItems, registeredItem } from "../models/warehouseItem";
+import { ObjectId } from "mongodb";
 
 // Gets name of currently logged-in user
 export async function getItem(req, res) {
@@ -9,7 +10,7 @@ export async function getItem(req, res) {
 
   // Check if value not inputted
   if (!itemName) {
-    errors.push({ itemID: "required" });
+    errors.push({ itemName: "required" });
   }
 
   // Output any errors
@@ -56,8 +57,58 @@ export async function getItem(req, res) {
   });
 }
 
+export async function getItemByID(req, res){
+  var itemID = req.query.itemID;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!itemID) {
+    errors.push({ itemID: "required" });
+  }
+
+  // Run conversion after verifying it exists
+  itemID = new ObjectId(req.query.itemID);
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  //warehouseItems.findOne({itemID: givenItemID}, "-_id")
+  //.then((data) => res.json(data));
+
+    warehouseItems.aggregate([
+      {
+        // Performs a simple match (similar to find)
+        '$match': {
+          '_id': itemID
+        }
+      }, {
+        // Performs a traditional LEFT JOIN SQL function on itemType to _id
+        '$lookup': {
+          'from': 'registereditems',
+          'localField': 'itemType',
+          'foreignField': '_id',
+          'as': 'itemDetails'
+        }
+      }, {
+        // Unwinds the returned arrray under itemDetails to just the single object
+        '$unwind': {
+          'path': '$itemDetails'
+        }
+      }, {
+        // Removes the fields from the return output
+        '$unset': [
+          'item', 'itemType', 'itemDetails'
+        ]
+      }
+    ]).then((data) => res.json(data)); // data[0] is used as this pipeline will only ever return one result as itemID is unique
+}
+
 export async function updateItem(req, res) {
-  const givenItemID = req.query.itemID;
+  var givenItemID = req.query.itemID;
   const newItemLoc = req.query.newItemLoc;
 
   // Error checking
@@ -68,6 +119,9 @@ export async function updateItem(req, res) {
     errors.push({ itemID: "required" });
   }
 
+  // Run conversion after verifying it exists
+  givenItemID = new ObjectId(givenItemID);
+
   if (!newItemLoc) {
     errors.push({ newItemLoc: "required" });
   }
@@ -77,7 +131,40 @@ export async function updateItem(req, res) {
     return res.status(422).json({ errors });
   }
 
-  warehouseItems.updateOne({ itemID: givenItemID }, { $set: { itemLoc: newItemLoc } })
+  warehouseItems.updateOne({ _id: givenItemID }, { $set: { itemLoc: newItemLoc } })
+    .then((data) => res.json(data))
+}
+
+export async function updateRegisterItem(req, res){
+  var givenItemID = req.query.itemID;
+  const newItemName = req.query.itemName;
+  const newItemDescription = req.query.itemNotes;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!givenItemID) {
+    errors.push({ itemID: "required" });
+  }
+  
+  // Run conversion after verifying it exists
+  givenItemID = new ObjectId(givenItemID);
+
+  if (!newItemName) {
+    errors.push({ newItemName: "required" });
+  }
+
+  if (!newItemDescription) {
+    errors.push({ newItemDescription: "required" });
+  }
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  registeredItem.updateOne({ _id: givenItemID }, { $set: { itemName: newItemName, itemNotes: newItemDescription } })
     .then((data) => res.json(data))
 }
 
