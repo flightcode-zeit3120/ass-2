@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get("/getItem", verifyToken, WarehouseItems.getItem);
 router.patch("/updateItem", verifyToken, WarehouseItems.updateItem);
+router.post("/addItem", verifyToken, WarehouseItems.addItem);
 
 export default router;

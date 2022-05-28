@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 
 require("dotenv").config();
 
+// Used to verify a given JWT, returning either required, invalid or the users ID
 export function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
 
