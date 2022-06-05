@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import sanitize from "express-mongo-sanitize";
 import User from "./routes/user";
 import Warehouse from "./routes/warehouseItems";
 
@@ -17,6 +18,7 @@ mongoose.Promise = global.Promise;
 // Set server parameters
 server.use(cors());
 server.use(express.json());
+server.use(sanitize());
 server.get("/", (req, res) => {
   res.status(200).send("Server Root");
 });
