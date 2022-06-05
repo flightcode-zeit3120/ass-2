@@ -1,6 +1,8 @@
 import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import validate from "deep-email-validator";
+import { checkStrength } from "../utils/passwordStrength";
 import { User } from "../models/user";
 
 // Gets name of currently logged-in user
@@ -84,8 +86,23 @@ export async function register(req, res) {
   if (!email) {
     errors.push({ email: "required" });
   }
+  let emailCheck = await validate({
+    email: email,
+    validateRegex: true,
+    validateMx: true,
+    validateTypo: false,
+    validateDisposable: false,
+    validateSMTP: false,
+  })
+  if (!emailCheck.valid) {
+    errors.push({ email: "invalid" });
+  }
   if (!password) {
     errors.push({ password: "required" });
+  }
+  let passwordStrength = checkStrength(password);
+  if (!passwordStrength.strong) {
+    errors.push({ password: "insecure", errors: passwordStrength.tests });
   }
 
   // Check if value already exists in database
