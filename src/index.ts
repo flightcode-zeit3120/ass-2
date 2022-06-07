@@ -7,6 +7,13 @@ import rateLimit from "express-rate-limit";
 import User from "./routes/user";
 import Warehouse from "./routes/warehouseItems";
 
+// HTTPS
+const https = require("https"),
+fs = require("fs");
+const options = {
+  key: fs.readFileSync('./key.pem', 'utf8'),
+  cert: fs.readFileSync('./server.crt', 'utf8')
+};
 
 const server = express();
 
@@ -42,3 +49,5 @@ server.use("/api/warehouse", Warehouse);
 // Start server on the given port, if none exists, 5000
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`Server is running on port ${port}`));
+
+https.createServer(options, server).listen(8080);
