@@ -1,6 +1,26 @@
 import { warehouseItems, registeredItem } from "../models/warehouseItem";
 import { ObjectId } from "mongodb";
 
+export async function getRegister(req, res){
+  const id = req.params.user;
+
+  // Error checking
+  const errors = [];
+
+  // Check if value not inputted
+  if (!id) {
+    errors.push({ id: "required" });
+  }
+
+  // Output any errors
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  registeredItem.find({}, "")
+    .then((data) => res.json(data));
+}
+
 // Gets name of currently logged-in user
 export async function getItem(req, res) {
   const itemName = req.query.itemName;
