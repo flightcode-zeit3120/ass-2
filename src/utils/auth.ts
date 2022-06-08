@@ -12,7 +12,7 @@ export function verifyToken(req, res, next) {
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(422).json({ errors: [{ token: "invalid" }] });
+      return res.status(401).json({ errors: [{ token: "invalid" }] });
     }
 
     req.user = {};

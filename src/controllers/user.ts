@@ -48,12 +48,12 @@ export async function logIn(req, res) {
 
   User.findOne({ email }).then((data) => {
     if (!data) {
-      return res.status(404).json({ errors: [{ email: "not found" }] });
+      return res.status(401).json({ errors: [{ "credentials": "invalid" }] });
     }
 
     bcrypt.compare(password, data.password).then((isMatch) => {
       if (!isMatch) {
-        return res.status(403).json({ errors: [{ password: "incorrect" }] });
+        return res.status(401).json({ errors: [{ "credentials": "invalid" }] });
       }
       jwt.sign(
         { id: data.id },
@@ -139,29 +139,15 @@ export async function register(req, res) {
 }
 
 export async function deleteUser(req, res){
-  var userID = req.query.userID;
+  const id = req.params.user;
 
-  // Error checking
-  const errors = [];
-
-  // Check if value not inputted
-  if (!userID) {
-    errors.push({ itemID: "required" });
-  }
-
-  // Run conversion after verifying it exists
-  try {
-    userID = new ObjectId(req.query.userID);
-  } catch(e){
-    errors.push({ userID: "must be a geniune user ID" })
-    return res.status(422).json({ errors });
-  }
-
-  // Output any errors
-  if (errors.length > 0) {
-    return res.status(422).json({ errors });
-  }
-
-  User.deleteOne({ _id: userID})
-  .then((data) => res.json(data));
+  User.deleteOne({ _id: id})
+  .then((data) => {
+    if(data['deletedCount']==0){
+      return res.status(404).json({
+        errors: "User not found"
+      });
+    }
+      return res.sendStatus(200);
+  });
 }

@@ -1,5 +1,6 @@
 import { warehouseItems, registeredItem } from "../models/warehouseItem";
 import { ObjectId } from "mongodb";
+import { verifyLocationRegex } from "../utils/regexCheck";
 
 export async function getRegister(req, res){
   const id = req.params.user;
@@ -129,7 +130,16 @@ export async function getItemByID(req, res){
           'item', 'itemType', 'itemDetails'
         ]
       }
-    ]).then((data) => res.json(data)); // data[0] is used as this pipeline will only ever return one result as itemID is unique
+    ]).then((data) => {
+      // Check if Object contains data
+      if(Object.keys(data).length){
+        res.json(data);
+      } else {
+        return res.status(404).json({
+          errors: "No item matches that ID"
+        });
+      }
+    }); 
 }
 
 export async function updateItem(req, res) {
@@ -156,13 +166,26 @@ export async function updateItem(req, res) {
     errors.push({ newItemLoc: "required" });
   }
 
+  if (!verifyLocationRegex(newItemLoc)){
+    errors.push({ newItemLoc: "this is not a valid location!" });
+  }
+
   // Output any errors
   if (errors.length > 0) {
     return res.status(422).json({ errors });
   }
 
   warehouseItems.updateOne({ _id: givenItemID }, { $set: { itemLoc: newItemLoc } })
-    .then((data) => res.json(data))
+    .then((data) => {
+      // Check if Object contains data
+      if(data['modifiedCount']>0){
+        return res.sendStatus(200);
+      } else {
+        return res.status(404).json({
+          errors: "No item matches that ID"
+        });
+      }
+    }); 
 }
 
 export async function updateRegisterItem(req, res){
@@ -200,7 +223,16 @@ export async function updateRegisterItem(req, res){
   }
 
   registeredItem.updateOne({ _id: givenItemID }, { $set: { itemName: newItemName, itemNotes: newItemDescription } })
-    .then((data) => res.json(data))
+  .then((data) => {
+    // Check if Object contains data
+    if(data['matchedCount']>0){
+      return res.sendStatus(200);
+    } else {
+      return res.status(404).json({
+        errors: "No item matches that ID"
+      });
+    }
+  });
 }
 
 export async function addItem(req, res) {
@@ -215,6 +247,10 @@ export async function addItem(req, res) {
   }
   if (!itemLoc) {
     errors.push({ itemLoc: "required" });
+  }
+
+  if (!verifyLocationRegex(itemLoc)){
+    errors.push({ newItemLoc: "this is not a valid location!" });
   }
 
   // Output any errors
@@ -315,7 +351,16 @@ export async function deleteItem(req, res){
   }
 
   warehouseItems.deleteOne({ _id: itemID})
-  .then((data) => res.json(data));
+  .then((data) => {
+    // Check if Object contains data
+    if(data['deletedCount']>0){
+      return res.sendStatus(200);
+    } else {
+      return res.status(404).json({
+        errors: "No item matches that ID"
+      });
+    }
+  });
 }
 
 export async function deleteRegisterItem(req, res){
@@ -343,5 +388,14 @@ export async function deleteRegisterItem(req, res){
   }
 
   registeredItem.deleteOne({ _id: itemID})
-  .then((data) => res.json(data));
+  .then((data) => {
+    // Check if Object contains data
+    if(data['deletedCount']>0){
+      return res.sendStatus(200);
+    } else {
+      return res.status(404).json({
+        errors: "No item matches that ID"
+      });
+    }
+  });
 }
